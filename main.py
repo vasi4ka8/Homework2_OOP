@@ -1,51 +1,41 @@
+import os
 
-def read_cookbook(file_name):
-    cook_book = {}
-    with open(file_name, 'r', encoding='utf-8') as file:
-        while True:
-            dish_name = file.readline().strip()
-            if not dish_name:
-                break
-            ingredient_count = int(file.readline().strip())
-            ingredients = []
-            for _ in range(ingredient_count):
-                ingredient_data = file.readline().strip().split(' | ')
-                ingredient = {
-                    'ingredient_name': ingredient_data[0],
-                    'quantity': int(ingredient_data[1]),
-                    'measure': ingredient_data[2]
-                }
-                ingredients.append(ingredient)
-            cook_book[dish_name] = ingredients
-            file.readline()
-    return cook_book
+def read_files(file_list):
+    files_data = []
 
+    for file_name in file_list:
+        with open(file_name, 'r', encoding='utf-8') as file:
+            file_content = file.readlines()
+            file_info = {
+                'file_name': file_name,
+                'line_count': len(file_content),
+                'content': file_content
+            }
+            files_data.append(file_info)
 
+    return files_data
 
-def get_shop_list_by_dishes(dishes, person_count):
-    shop_list = {}
+def sort_files_by_line_count(files_data):
+    return sorted(files_data, key=lambda x: x['line_count'])
 
-    for dish in dishes:
-        if dish in cook_book:
-            for ingredient in cook_book[dish]:
-                ingredient_name = ingredient['ingredient_name']
-                quantity = ingredient['quantity'] * person_count
-                measure = ingredient['measure']
+def write_to_result_file(sorted_files_data, result_file_name):
+    with open(result_file_name, 'w', encoding='utf-8') as result_file:
+        for file_info in sorted_files_data:
+            result_file.write(f"{file_info['file_name']}\n")
+            result_file.write(f"{file_info['line_count']}\n")
+            result_file.writelines(file_info['content'])
+            result_file.write("\n")
 
-                if ingredient_name in shop_list:
+def merge_files(file_list, result_file_name):
+    files_data = read_files(file_list)
 
-                    shop_list[ingredient_name]['quantity'] += quantity
-                else:
+    sorted_files_data = sort_files_by_line_count(files_data)
 
-                    shop_list[ingredient_name] = {'measure': measure, 'quantity': quantity}
-        else:
-            print(f"Блюдо '{dish}' отсутствует в книге рецептов.")
-
-    return shop_list
+    write_to_result_file(sorted_files_data, result_file_name)
 
 
-cook_book = read_cookbook('recipes.txt')
+file_list = ['1.txt', '2.txt', '3.txt']
 
-shop_list = get_shop_list_by_dishes(['Запеченный картофель', 'Омлет'], 2)
+merge_files(file_list, 'result.txt')
 
-print(shop_list)
+print("Файлы успешно объединены в result.txt")
